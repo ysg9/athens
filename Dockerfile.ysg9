@@ -1,0 +1,23 @@
+ARG BASE_IMAGE
+ARG GOLANG_IMAGE
+
+FROM $GOLANG_IMAGE AS golang
+
+FROM $BASE_IMAGE
+COPY --from=golang /usr/local/go/bin/go /bin/go
+COPY ./athens-proxy /bin/athens-proxy
+COPY ./config.dev.toml /config/config.toml
+RUN chmod 644 /config/config.toml
+
+# Add tini, see https://github.com/gomods/athens/issues/1155 for details.
+RUN apk add --update \
+      git git-lfs mercurial \
+      openssh-client subversion \
+      procps fossil curl \
+      tini \
+    && mkdir -p /usr/local/go
+
+EXPOSE 3000
+ENTRYPOINT ["/sbin/tini","--"]
+CMD ["athens-proxy","-config_file=/config/config.toml"]
+

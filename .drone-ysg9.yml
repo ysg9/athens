@@ -1,0 +1,32 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+- name: build
+  image: %%{GolangDevImage}:1-alpine
+  pull: always
+  settings:
+    build_script: build.sh
+
+- name: scan
+  image: %%{NcicdDockerRepo}/cicd/nancy:latest
+  pull: always
+  depends_on:
+  - build
+
+- name: create-image
+  image: %%{DroneDockerImage}
+  settings:
+    repo: %%{NcicdDockerRepo}/cicd/athens
+    dockerfile: Dockerfile.ysg9
+    build_args:
+    - BASE_IMAGE=%%{BaseAlpineImage}:latest
+    - GOLANG_IMAGE=%%{GolangDevImage}:1-alpine
+    tags:
+    - latest
+    #- test
+  depends_on:
+  - scan
+
+
