@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"time"
+	"crypto/tls"
 
 	_ "net/http/pprof"
 
@@ -46,6 +47,13 @@ func main() {
 	srv := &http.Server{
 		Addr:    conf.Port,
 		Handler: handler,
+		TLSConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+			CipherSuites: []uint16{
+				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			},
+		},
 	}
 	idleConnsClosed := make(chan struct{})
 
