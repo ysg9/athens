@@ -23,7 +23,6 @@ type Config struct {
 	TimeoutConf
 	GoEnv            string    `validate:"required" envconfig:"GO_ENV"`
 	GoBinary         string    `validate:"required" envconfig:"GO_BINARY_PATH"`
-	GoProxy          string    `envconfig:"GOPROXY"`
 	GoBinaryEnvVars  EnvList   `envconfig:"ATHENS_GO_BINARY_ENV_VARS"`
 	GoGetWorkers     int       `validate:"required" envconfig:"ATHENS_GOGET_WORKERS"`
 	GoGetDir         string    `envconfig:"ATHENS_GOGET_DIR"`
@@ -146,7 +145,6 @@ func defaultConfig() *Config {
 		GoBinary:         "go",
 		GoBinaryEnvVars:  EnvList{"GOPROXY=direct"},
 		GoEnv:            "development",
-		GoProxy:          "direct",
 		GoGetWorkers:     10,
 		ProtocolWorkers:  30,
 		LogLevel:         "debug",
@@ -169,11 +167,12 @@ func defaultConfig() *Config {
 		IndexType:        "none",
 		SingleFlight: &SingleFlight{
 			Etcd:  &Etcd{"localhost:2379,localhost:22379,localhost:32379"},
-			Redis: &Redis{"127.0.0.1:6379", ""},
+			Redis: &Redis{"127.0.0.1:6379", "", DefaultRedisLockConfig()},
 			RedisSentinel: &RedisSentinel{
 				Endpoints:        []string{"127.0.0.1:26379"},
 				MasterName:       "redis-1",
 				SentinelPassword: "sekret",
+				LockConfig:       DefaultRedisLockConfig(),
 			},
 		},
 		Index: &Index{

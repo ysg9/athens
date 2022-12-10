@@ -86,10 +86,6 @@ func addProxyRoutes(
 	// 4. The plain stash.New just takes a request from upstream and saves it into storage.
 	fs := afero.NewOsFs()
 
-	// TODO: remove before we release v0.7.0
-	if c.GoProxy != "direct" && c.GoProxy != "" {
-		l.Error("GoProxy is deprecated, please use GoBinaryEnvVars")
-	}
 	if !c.GoBinaryEnvVars.HasKey("GONOSUMDB") {
 		c.GoBinaryEnvVars.Add("GONOSUMDB", strings.Join(c.NoSumPatterns, ","))
 	}
@@ -144,7 +140,7 @@ func getSingleFlight(c *config.Config, checker storage.Checker) (stash.Wrapper, 
 		if c.SingleFlight == nil || c.SingleFlight.Redis == nil {
 			return nil, fmt.Errorf("Redis config must be present")
 		}
-		return stash.WithRedisLock(c.SingleFlight.Redis.Endpoint, c.SingleFlight.Redis.Password, checker)
+		return stash.WithRedisLock(c.SingleFlight.Redis.Endpoint, c.SingleFlight.Redis.Password, checker, c.SingleFlight.Redis.LockConfig)
 	case "redis-sentinel":
 		if c.SingleFlight == nil || c.SingleFlight.RedisSentinel == nil {
 			return nil, fmt.Errorf("Redis config must be present")
@@ -154,6 +150,7 @@ func getSingleFlight(c *config.Config, checker storage.Checker) (stash.Wrapper, 
 			c.SingleFlight.RedisSentinel.MasterName,
 			c.SingleFlight.RedisSentinel.SentinelPassword,
 			checker,
+			c.SingleFlight.RedisSentinel.LockConfig,
 		)
 	case "gcp":
 		if c.StorageType != "gcp" {

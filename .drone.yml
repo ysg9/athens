@@ -4,7 +4,7 @@ name: default
 
 steps:
 - name: download-dependencies
-  image: golang:1.17
+  image: golang:1.18
   commands:
     # wait for services to be ready.
     # - cd scripts/liveness_probe
@@ -21,7 +21,7 @@ steps:
     path: /go
 
 - name: build
-  image: golang:1.17
+  image: golang:1.18
   commands:
 
   # build
@@ -69,6 +69,9 @@ steps:
   volumes:
   - name: cache
     path: /go
+  depends_on:
+    - redis
+    - redis-sentinel
 
 - name: docker-latest
   image: plugins/docker
@@ -169,6 +172,8 @@ services:
     REDIS_SENTINEL_QUORUM: "1"
   ports:
     - 26379
+  depends_on:
+    - redis
 - name: protectedredis
   image: redis
   ports:
